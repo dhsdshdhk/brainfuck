@@ -2,7 +2,6 @@
 #include <stdlib.h>
 
 // A Brainfuck interpreter.
-// Usage: ./a.out program.bf
 
 FILE* fp;
 char data[30000] = {0};             // cells
@@ -12,7 +11,9 @@ int ip = 0;                         // instruction pointer
 int instructions[100000] = {0};     // instructions 
 int last_instruction;               // pointer to the last instruction
 
-int c;
+int valid_command(int c){
+    return (c == '>' || c == '<' || c == '+' || c == '-' || c == '.' || c == ',' || c == '[' || c == ']');
+}
 
 void skip_loop(){
     int aux = ip + 1;
@@ -105,28 +106,32 @@ void execute_instruction(){
                 ip++;
             }
             break;
-            
-        default:
-            ip++;
     }
 }
 
 int main(int argc, char* argv[]){
-    fp = fopen(argv[1], "r"); 
+    int c;
+    fp = fopen(argv[1], "r");
 
     if(fp){
         while((c = getc(fp)) != EOF){
+            if(valid_command(c)){
                 instructions[ip++] = c;
             }
+        }
         fclose(fp);
+
+        last_instruction = ip - 1;
+        ip = 0;
+
+        while(ip <= last_instruction){
+            execute_instruction();
+        }
     }
 
-    last_instruction = ip - 1;
-    ip = 0;
-
-    do{
-        execute_instruction();
-    }while(ip <= last_instruction);
+    else{
+        printf("Could not open file %s.\n", argv[1]);
+    }
     
     return 0;
 }
